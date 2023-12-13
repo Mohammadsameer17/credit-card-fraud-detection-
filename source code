@@ -1,0 +1,155 @@
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt # plotting
+import numpy as np # linear algebra
+import os # accessing directory structure
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+
+df1 = pd.read_csv('D:\\creditcard.csv')
+df1
+
+df1.head(5)
+df1.tail(10)
+
+df1.shape
+df1 = df1.drop_duplicates()
+df1.shape
+
+import seaborn as sns
+df1["Class"].value_counts(normalize=True).plot(
+    kind="bar", xlabel="Class", ylabel="Relative Frequency", title="Class Balance"
+);
+df1.hist(bins=30, figsize=(30, 30))
+df1.describe()
+
+from sklearn.preprocessing import RobustScaler
+new_df = df1.copy()
+new_df['Amount'] = RobustScaler().fit_transform(new_df['Amount'].to_numpy().reshape(-1, 1))
+new_df['Amount'].hist();
+new_df['Amount'].describe()
+new_df.head()
+
+X = new_df.drop('Class',axis=1)
+y = new_df['Class']
+
+from sklearn.model_selection import train_test_split
+
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.20, random_state=42)
+
+print("X_train shape:", X_train.shape)
+print("y_train shape:", y_train.shape)
+print("X_test shape:", X_test.shape)
+print("y_test shape:", y_test.shape)
+
+#Building Models with the unbalanced dataset
+#Logistic Regression
+from sklearn.linear_model import LogisticRegression
+
+logistic_model = LogisticRegression(max_iter=1000)
+logistic_model.fit(X_train, y_train)
+logistic_model.score(X_train, y_train)
+
+# Predicting the result
+y_pred = logistic_model.predict(X_test)
+ac = accuracy_score(y_test,y_pred)*100
+cm = confusion_matrix(y_test,y_pred)
+cr= classification_report(y_test,y_pred, target_names=['Not Fraud', 'Fraud'])
+print("accuracy score:",ac)
+print("confusion matrix:",cm)
+print("classification report:",cr)
+
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(max_depth=2, n_jobs=-1)
+rf.fit(X_train, y_train)
+
+y_pred=rf.predict(X_test)
+
+ac = accuracy_score(y_test,y_pred)*100
+cm = confusion_matrix(y_test,y_pred)
+cr= classification_report(y_test,y_pred, target_names=['Not Fraud', 'Fraud'])
+print("accuracy score:",ac)
+print("confusion matrix:",cm)
+print("classification report:",cr)
+
+#Decision Tree
+from sklearn.tree import DecisionTreeClassifier
+
+dtc = DecisionTreeClassifier(random_state=42)
+dtc.fit(X_train, y_train)
+
+y_pred = dtc.predict(X_test)
+
+ac = accuracy_score(y_test,y_pred)*100
+cm = confusion_matrix(y_test,y_pred)
+cr= classification_report(y_test,y_pred, target_names=['Not Fraud', 'Fraud'])
+print("accuracy score:",ac)
+print("confusion matrix:",cm)
+print("classification report:",cr)
+
+#Balanced Dataset with OverSampling Technique
+X = new_df.drop('Class',axis=1)
+y = new_df['Class']
+
+print("X.shape: ", X.shape)
+print("y.shape: ", y.shape)
+
+from imblearn.over_sampling import SMOTE
+
+X_res,y_res = SMOTE().fit_resample(X,y)
+y_res.value_counts()
+
+#Train Test Split on Balanced data
+from sklearn.model_selection import train_test_split
+X_train,X_test,y_train,y_test = train_test_split(X_res,y_res,test_size=0.20,random_state=42)
+
+print("X_train shape:", X_train.shape)
+print("y_train shape:", y_train.shape)
+print("X_test shape:", X_test.shape)
+print("y_test shape:", y_test.shape)
+
+#logestic regression on Balanced Data
+from sklearn.linear_model import LogisticRegression
+
+logistic_model = LogisticRegression(max_iter=1000)
+logistic_model.fit(X_train, y_train)
+
+y_pred = logistic_model.predict(X_test)
+
+ac = accuracy_score(y_test,y_pred)*100
+cm = confusion_matrix(y_test,y_pred)
+cr= classification_report(y_test,y_pred, target_names=['Not Fraud', 'Fraud'])
+print("accuracy score:",ac)
+print("confusion matrix:",cm)
+print("classification report:",cr)
+
+#Random Forest on Balanced Data
+from sklearn.ensemble import RandomForestClassifier
+
+rf = RandomForestClassifier(max_depth=2, n_jobs=-1)
+rf.fit(X_train, y_train)
+
+y_pred = rf.predict(X_test)
+
+ac = accuracy_score(y_test,y_pred)*100
+cm = confusion_matrix(y_test,y_pred)
+cr= classification_report(y_test,y_pred, target_names=['Not Fraud', 'Fraud'])
+print("accuracy score:",ac)
+print("confusion matrix:",cm)
+print("classification report:",cr)
+
+#Decision Tree on Balanced data
+from sklearn.tree import DecisionTreeClassifier
+
+dtc = DecisionTreeClassifier(max_depth=6, random_state=42)
+dtc.fit(X_train, y_train)
+
+y_pred = dtc.predict(X_test)
+
+ac = accuracy_score(y_test,y_pred)*100
+cm = confusion_matrix(y_test,y_pred)
+cr= classification_report(y_test,y_pred, target_names=['Not Fraud', 'Fraud'])
+print("accuracy score:",ac)
+print("confusion matrix:",cm)
+print("classification report:",cr)
+
